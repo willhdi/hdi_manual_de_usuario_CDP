@@ -10,6 +10,7 @@ Fecha de elaboración: 10/07/2026
 | Versión | Descripción | Autor | Fecha | Revisado por |
 |---------|-------------|-------|-------|--------------|
 | 1.0 | Creación del manual CDP (basado en el Manual de Usuario ADP v2.1 y en la capacitación CDP del 09/07/2026) | Wilson Jerez | 10/07/2026 | — |
+| 1.1 | Se agrega la guía "Cómo solicitar acceso (ticket DATAHUB)" con la explicación de cada campo del formulario y un ejemplo diligenciado | Wilson Jerez | 10/07/2026 | — |
 
 ---
 
@@ -88,7 +89,7 @@ El modelo de las vistas de consumo es un **modelo estrella**: de una tabla de he
 
 ### Tablas de hechos (FACT)
 
-Toda transacción ("todo lo que mueva plata") queda registrada en una FACT: emisión de póliza, renovación, cancelación, movimientos del siniestro, reservas, etc. Entre las más relevantes:
+Toda transacción monetaria  queda registrada en una FACT: emisión de póliza, renovación, cancelación, movimientos del siniestro, reservas, etc. Entre las más relevantes:
 
 - **Transacciones de primas** (transaction movement): solo movimientos transaccionales.
 - **IMX (endosos/movimientos de póliza):** contiene **todos** los movimientos, incluidos los **no transaccionales** (p. ej. cambio de sucursal) que no aparecen en la transaccional.
@@ -137,6 +138,48 @@ Se debe levantar un **ticket** solicitando el usuario de Redshift. Los accesos s
 
 > Nota: cada usuario no tiene acceso por defecto a todos los esquemas; los permisos se gestionan por perfil.
 
+### Cómo solicitar acceso (ticket DATAHUB)
+
+La solicitud se realiza a través del portal **Servicios HDI Seguros → Gerencia de datos DATAHUB** (Jira Service Management), opción **"Permisos y accesos a los productos de datos"**. Los campos del formulario son:
+
+| Campo | Obligatorio | Qué diligenciar |
+|-------|:-----------:|-----------------|
+| **Resumen** | Sí | Título corto e identificable. Formato sugerido: `Solicitud acceso [qué] – [nombre del solicitante]`. Ej.: `Solicitud acceso a esquemas CDP (Redshift) – Wilson Jerez` |
+| **Selecciona el tipo de acceso** | Sí | Qué producto de datos se necesita: `Acceso a esquemas CDP` (usuario de Redshift), acceso a un reporte de Power BI, u otros aplicativos de la gerencia |
+| **Tipo de usuario CDP** | No | Rol/perfil que determina el nivel de permisos en Redshift (con o sin acceso a PII). Solicitar el **rol mínimo necesario**: para consulta y exploración basta un perfil de analista/consumidor (lectura en esquemas generales + escritura en sandbox) |
+| **Power BI** | No | Solo aplica si se solicita acceso a un reporte: buscar y seleccionar el reporte específico. Si se piden esquemas CDP, dejar vacío |
+| **Clasificación del Reporte/Esquema** | Sí | Nivel de sensibilidad del producto de datos (ver tabla siguiente) |
+| **Justificación** | Sí | Responder: **quién** solicita (cargo/área), **qué** necesita, **para qué** lo usará y con qué **alcance**. Evitar justificaciones genéricas |
+| **Vicepresidencia · Gerencia** | Sí | Ubicación organizacional de quien usará el acceso (de aquí suele salir el aprobador) |
+| **Contiene información personal** | Sí | **SÍ** si los datos incluyen datos personales de clientes/asegurados (nombres, documentos, contactos — PII); activa las validaciones de protección de datos (Ley 1581). **NO** solo si se consumirán datos agregados o técnicos sin personas identificables |
+
+#### Clasificación del Reporte/Esquema
+
+| Opción | Cuándo aplica | Ejemplo en contexto CDP |
+|--------|---------------|-------------------------|
+| **Público** | Información que puede divulgarse sin riesgo, incluso fuera de HDI | Cifras ya publicadas (informes públicos, datos abiertos de Fasecolda). Casi nunca aplica para esquemas CDP |
+| **Interno** | Información de uso general dentro de HDI, sin datos sensibles ni personales | Reportes agregados de gestión, catálogos técnicos, tablas de parámetros sin clientes |
+| **Confidencial** | Información de negocio cuya divulgación afecta a la compañía; acceso limitado a quien lo necesite | Esquemas con pólizas, primas, siniestros, comisiones — **la opción típica al pedir acceso a esquemas CDP** |
+| **Restringido** | Nivel más alto: datos personales identificables (PII), información financiera sensible o regulada | Tablas con datos de asegurados (documentos, contactos); perfiles con acceso PII habilitado |
+
+> **Regla práctica:** para acceso de analista a los esquemas generales seleccionar **Confidencial**; si el rol requiere ver **PII** (y se marcará "SÍ" en *Contiene información personal*), seleccionar **Restringido**. A mayor clasificación, más aprobaciones requiere el ticket: no pedir un nivel mayor al realmente necesario.
+
+#### Ejemplo de ticket diligenciado
+
+| Campo | Valor |
+|-------|-------|
+| Resumen | Solicitud acceso a esquemas CDP (Redshift) – Wilson Jerez, Gerencia de Arquitectura |
+| Tipo de acceso | Acceso a esquemas CDP |
+| Tipo de usuario CDP | Analista / Consumidor (lectura en esquemas generales + sandbox) |
+| Power BI | *(vacío — no aplica)* |
+| Clasificación | Confidencial |
+| Vicepresidencia / Gerencia | Vicepresidencia De Tecnología / Gerencia De Arquitectura |
+| Contiene información personal | SÍ |
+
+Justificación de ejemplo:
+
+> Soy analista de la Gerencia de Arquitectura y requiero acceso de **consulta (lectura)** a los esquemas generales del CDP en Redshift (producción) y **escritura en el sandbox**, para desarrollar análisis de siniestralidad de la línea de autos y construir vistas de apoyo para el reporte técnico mensual. El acceso se usará desde DBeaver con el usuario de Redshift que asigne el equipo de administración del CDP. Requiero acceso a las tablas de pólizas, primas y siniestros; incluye datos personales de asegurados, que se tratarán conforme a la política de protección de datos de HDI.
+
 ### Herramienta de conexión: DBeaver
 
 Anteriormente se utilizaba DB Visualizer; **actualmente la herramienta estándar es DBeaver** (disponible en el portal de aplicaciones corporativo).
@@ -154,28 +197,18 @@ Pasos para crear la conexión en DBeaver:
 
 DBeaver además ofrece autocompletado/predicción de variables, lo que facilita la escritura de queries.
 
-### Conexión desde Python
+### Ejecución de consultas en DBeaver
 
-```python
-import getpass
-import psycopg2
+Una vez creada la conexión:
 
-# CDP - Producción
-username = input("Enter User Name: ")
-password = getpass.getpass("Enter Password: ")
+1. Abrir un editor SQL sobre la conexión: `SQL Editor` → `New SQL Editor` (o `Ctrl+]`).
+2. Escribir la consulta y ejecutarla con `Ctrl+Enter` (la sentencia actual) o `Alt+X` (todo el script).
+3. Los resultados aparecen en la grilla inferior, desde donde se pueden **exportar** (clic derecho → `Export resultset...`) a Excel, CSV u otros formatos.
+4. Para explorar los esquemas, tablas y columnas disponibles, usar el árbol del panel **Database Navigator**.
 
-cdp = psycopg2.connect(
-    dbname="adp_dwh",
-    host="corshftanltc-dprogramp.hdicolombia.com.co",  # Prod
-    port="9519",
-    user=username,
-    password=password,
-)
-```
+> **Importante:** no guardar usuario/contraseña "quemados" en scripts ni compartir credenciales. En DBeaver las credenciales quedan almacenadas en la conexión de cada usuario.
 
-> **Importante:** nunca dejar usuario/contraseña "quemados" en el código, especialmente si el desarrollo se va a productivizar. Usar `getpass`, variables de entorno o gestores de secretos.
-
-Para los ambientes **Non Prod** o **Dev**, cambiar únicamente el `host` según la tabla de la sección 5.
+Para conectarse a los ambientes **Non Prod** o **Dev**, crear una conexión adicional en DBeaver cambiando únicamente el **host** según la tabla de la sección 5.
 
 ---
 
