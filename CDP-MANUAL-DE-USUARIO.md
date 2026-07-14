@@ -146,7 +146,7 @@ La solicitud se realiza a través del portal **Servicios HDI Seguros → Gerenci
 |-------|:-----------:|-----------------|
 | **Resumen** | Sí | Título corto e identificable. Formato sugerido: `Solicitud acceso [qué] – [nombre del solicitante]`. Ej.: `Solicitud acceso a esquemas CDP (Redshift) – Wilson Jerez` |
 | **Selecciona el tipo de acceso** | Sí | Qué producto de datos se necesita: `Acceso a esquemas CDP` (usuario de Redshift), acceso a un reporte de Power BI, u otros aplicativos de la gerencia |
-| **Tipo de usuario CDP** | No | Rol/perfil que determina el nivel de permisos en Redshift (con o sin acceso a PII). Solicitar el **rol mínimo necesario**: para consulta y exploración basta un perfil de analista/consumidor (lectura en esquemas generales + escritura en sandbox) |
+| **Tipo de usuario CDP** | No | Rol/perfil que determina el nivel de permisos en Redshift. Las opciones del desplegable son: `cdp_bus_users_basic` (usuario de negocio básico — consulta y exploración), `cdp_bi_users` (usuario de BI), y sus equivalentes para el ambiente de desarrollo `cdp_bus_users_basic_dev` y `cdp_bi_users_dev`. Solicitar el **rol mínimo necesario**: para consulta y exploración en producción basta `cdp_bus_users_basic` |
 | **Power BI** | No | Solo aplica si se solicita acceso a un reporte: buscar y seleccionar el reporte específico. Si se piden esquemas CDP, dejar vacío |
 | **Clasificación del Reporte/Esquema** | Sí | Nivel de sensibilidad del producto de datos (ver tabla siguiente) |
 | **Justificación** | Sí | Responder: **quién** solicita (cargo/área), **qué** necesita, **para qué** lo usará y con qué **alcance**. Evitar justificaciones genéricas |
@@ -170,7 +170,7 @@ La solicitud se realiza a través del portal **Servicios HDI Seguros → Gerenci
 |-------|-------|
 | Resumen | Solicitud acceso a esquemas CDP (Redshift) – Wilson Jerez, Gerencia de Arquitectura |
 | Tipo de acceso | Acceso a esquemas CDP |
-| Tipo de usuario CDP | Analista / Consumidor (lectura en esquemas generales + sandbox) |
+| Tipo de usuario CDP | `cdp_bus_users_basic` |
 | Power BI | *(vacío — no aplica)* |
 | Clasificación | Confidencial |
 | Vicepresidencia / Gerencia | Vicepresidencia De Tecnología / Gerencia De Arquitectura |
@@ -186,14 +186,16 @@ Anteriormente se utilizaba DB Visualizer; **actualmente la herramienta estándar
 
 Pasos para crear la conexión en DBeaver:
 
-1. `Database` → `New Database Connection`.
-2. Seleccionar el tipo **Redshift** (driver JDBC Redshift).
-3. Diligenciar los parámetros según el ambiente (ver [sección 5](#5-conectividad-hdi-ambientes-hosts-y-puertos)):
-   - **Host:** según ambiente (Prod / Non Prod / Dev)
+1. **Crear una nueva conexión:** clic en el botón **Nueva Conexión** (icono de enchufe con `+`, primer botón de la barra de herramientas) o con el atajo `Ctrl+Mayús+N`. También está disponible desde el menú `Base de Datos` → `Nueva conexión`.
+2. **Seleccionar el driver:** en la ventana *"Conectar a base de datos"* escribir `redshift` en el buscador, seleccionar **AWS / Redshift** (AWS Redshift JDBC driver) y pulsar `Siguiente >`.
+3. **Diligenciar las propiedades de conexión** (pestaña *General*, opción *Connect by: Host*), según el ambiente (ver [sección 5](#5-conectividad-hdi-ambientes-hosts-y-puertos)):
+   - **Host/Instance:** según ambiente (Prod / Non Prod / Dev)
    - **Port:** `9519`
    - **Database:** `adp_dwh`
-   - **Usuario / contraseña:** credenciales entregadas por el equipo CDP.
-4. Probar la conexión (`Test Connection`) y finalizar.
+   - **Authentication:** `Username/password`, con las credenciales entregadas por el equipo CDP. Marcar **Save password** para no digitarla en cada conexión.
+4. **Validar:** clic en `Probar conexión...`; si la prueba es exitosa, pulsar `Finalizar`.
+
+> Si es la primera vez que se usa el driver de Redshift, DBeaver pedirá descargar los archivos del driver: aceptar la descarga antes de probar la conexión.
 
 DBeaver además ofrece autocompletado/predicción de variables, lo que facilita la escritura de queries.
 
