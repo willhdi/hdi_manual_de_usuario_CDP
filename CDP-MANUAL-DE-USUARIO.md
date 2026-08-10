@@ -11,6 +11,7 @@ Fecha de elaboración: 10/07/2026
 |---------|-------------|-------|-------|--------------|
 | 1.0 | Creación del manual CDP (basado en el Manual de Usuario ADP v2.1 y en la capacitación CDP del 09/07/2026) | Wilson Jerez | 10/07/2026 | — |
 | 1.1 | Se agrega la guía "Cómo solicitar acceso (ticket DATAHUB)" con la explicación de cada campo del formulario y un ejemplo diligenciado | Wilson Jerez | 10/07/2026 | — |
+| 1.2 | Se agrega el diagrama end-to-end de datos del CDP y la tabla de esquemas heredada del Manual ADP v2.1 (pendiente de confirmar con el equipo CDP) | Wilson Jerez | 10/08/2026 | — |
 
 ---
 
@@ -73,6 +74,43 @@ El CDP sigue las buenas prácticas de construcción de data warehouse mediante e
 - Reapertura automática al terminar la carga, aproximadamente a las **5:00 a. m.**
 - **Recomendación:** trabajar en las mañanas; el CDP está mucho más descargado. En horas de la tarde y en semanas de cierre contable el rendimiento se degrada.
 
+### Diagrama end-to-end de datos
+
+Adaptación al CDP del diagrama "end to end" del Manual de Usuario ADP v2.1 (Liberty, 2023): mismas fuentes de origen y misma lógica de capas, pero con el alcance ya reducido a Colombia y con la capa de calidad explícita del estándar medallón.
+
+```mermaid
+flowchart LR
+    subgraph Fuentes["Fuentes de datos (Colombia)"]
+        IAXIS[("IAxis<br/>(core)")]
+        AS400[("AS400")]
+        MANUAL[("Cargas manuales<br/>Guía Fasecolda, Excel")]
+    end
+
+    subgraph CDP["CDP — Amazon Redshift (AWS)"]
+        direction LR
+        RAW[("Capa cruda<br/>ODS / Raw Data")]
+        QUALITY[("Capa de calidad")]
+        DWH[("Capa productiva<br/>Data Warehouse / Data Mart<br/>(modelo estrella)")]
+        RAW --> QUALITY --> DWH
+    end
+
+    SANDBOX[("Sandbox")]
+
+    subgraph Consumo["Consumo"]
+        BI[("Reportería<br/>Power BI / Excel")]
+        ANALYTICS[("Analítica<br/>SQL / Python / R")]
+    end
+
+    IAXIS --> RAW
+    AS400 --> RAW
+    MANUAL --> RAW
+    DWH --> BI
+    DWH --> ANALYTICS
+    DWH -. "desarrollo colaborativo / productivización" .-> SANDBOX
+```
+
+> Nota: es una representación funcional basada en el diagrama ADP (2023) y en la arquitectura por capas descrita arriba; no un diagrama de infraestructura verificado por el equipo de administración del CDP.
+
 ---
 
 ## 3. Modelo de datos del CDP
@@ -86,6 +124,23 @@ El modelo de las vistas de consumo es un **modelo estrella**: de una tabla de he
 | `dim_` | Dimensión | Atributos descriptivos (vehículo, conductor, asegurado, sucursal, ramo, ciudad/departamento, calendario, etc.) |
 | `fact_` / `fac_` | Hechos | Movimientos transaccionales (emisión, renovación, cancelación, movimientos de siniestros y reservas, etc.) |
 | `*_backup` | Respaldo | Copias de seguridad previas a cambios; **no se consumen**. El nombre de la tabla productiva nunca cambia |
+
+### Esquemas del CDP (nomenclatura heredada del ADP)
+
+El Manual de Usuario ADP v2.1 (Liberty, 2023) documentaba los esquemas de vistas separados por **idioma** y por si contenían datos **PII** o no, con una columna para Chile y otra para "Andino" (Colombia + Ecuador). Como el CDP es la continuación exclusiva de la rama Andino/Colombia — y sigue operando sobre la misma base `adp_dwh` (ver [sección 5](#5-conectividad-hdi-ambientes-hosts-y-puertos)) — esta es previsiblemente la nomenclatura de esquemas vigente, aunque **no está confirmada en este manual** y debe validarse con el equipo de administración del CDP antes de usarse en documentación oficial o en tickets:
+
+| Idioma | Tipo de dato | Esquema (heredado ADP — rama Andino/Colombia) |
+|--------|--------------|------------------------------------------------|
+| Español | PII | `gde_adp_dwh_spvw_general` |
+| Español | Non PII | `gde_adp_dwh_spvw_restricted` |
+| Inglés | PII | `gde_adp_dwh_vw_general` |
+| Inglés | Non PII | `gde_adp_dwh_vw_restricted` |
+
+Tabla 1 (adaptada) — Esquemas de vistas, basada en la "Tabla 1.- Esquemas de vistas ADP (2023)" del manual ADP v2.1, columna Andino.
+
+Adicionalmente, el ADP documentaba un esquema de raw data específico para Andino: `gde_adp_ods`.
+
+> **Pendiente de verificar:** confirmar con el equipo CDP (Javier Gualdron y equipo) si estos nombres de esquema siguen vigentes tal cual, o si fueron renombrados al separarse Colombia de Ecuador dentro del programa.
 
 ### Tablas de hechos (FACT)
 
