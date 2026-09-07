@@ -47,32 +47,6 @@
 | **Responsabilidades:** -   Administrador del Entorno Sandbox (Director de Ingeniería de Datos): Responsable de gestionar el proceso de transición de las soluciones desarrolladas y certificadas en el entorno Sandbox hacia el entorno de producción. Además, debe garantizar el uso adecuado del entorno de pruebas, asegurándose de que se cumplan las políticas establecidas. - Gobierno de Datos: Encargado de establecer las pautas mínimas para el uso eficiente y seguro de la herramienta Sandbox. También debe realizar un monitoreo continuo para verificar el cumplimiento de dichas pautas. - Usuarios del Entorno Sandbox (Desarrolladores): Deben familiarizarse con las políticas aplicables al uso del entorno Sandbox y seguir estrictamente los lineamientos definidos. Esto garantiza un entorno de pruebas optimizado y funcional para todos los usuarios. |  |  |
 | **  Normativa interna asociada a la Política: **** **o    Metodología de desarrollo de productos de datos - [Política de productos de datos - Gerencia de Datos DATAHUB - Confluence HDI](https://hdiseguroscol.atlassian.net/wiki/spaces/GDDD/pages/118161679/Pol+tica+de+productos+de+datos) |  |  |
 
-# Nomenclatura de esquemas y ambientes
-
-## Prefijo según el tipo de base
-
-Los esquemas se nombran según el tipo de procesamiento de la base a la que pertenecen:
-
-- **`gde_`** — prefijo para las bases y esquemas **analíticos** (procesamiento analítico, orientado a reportes, consultas y análisis). Es el caso del CDP y de los esquemas oficiales de Data Program (por ejemplo `gde_adp_dwh_vw_general` y `gde_adp_dwh_vw_restricted`).
-- **`non_gde`** — prefijo para las bases y esquemas **transaccionales** (procesamiento operativo del día a día).
-
-## Ambientes
-
-Dentro de esta estructura existen tres ambientes:
-
-| Ambiente | Propósito |
-| --- | --- |
-| **DEV** | Desarrollo. |
-| **NON_PROD** | Pruebas / preproducción. |
-| **PROD** | Producción. |
-
-## Regla de pase a producción
-
-Cada paso a producción (**PROD**) requiere:
-
-- **Aprobación de Ingeniería de Datos.**
-- **Copia a Gobierno de Datos.**
-
 # Glosario y Términos
 
 
@@ -81,9 +55,3 @@ Cada paso a producción (**PROD**) requiere:
 **Data Warehouse (DWH):** Almacén de datos en SQL Server, orientado al análisis histórico y generación de reportes.
 
 **Sandbox:** Entornos aislados para pruebas y desarrollo dentro de las bases de datos oficiales en la compañía, que permiten experimentar sin afectar datos ni procesos en producción.
-
-**`gde_`:** Prefijo que identifica a las bases y esquemas **analíticos** (procesamiento analítico, orientado a análisis y reportes).
-
-**`non_gde`:** Prefijo que identifica a las bases y esquemas **transaccionales** (procesamiento operativo del día a día).
-
-**Ambientes (DEV / NON_PROD / PROD):** Las tres ramas en las que se gestionan los esquemas — desarrollo (DEV), pruebas/preproducción (NON_PROD) y producción (PROD). Todo pase a PROD requiere aprobación de Ingeniería de Datos y copia a Gobierno de Datos.
